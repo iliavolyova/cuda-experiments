@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
     };
     hst_B = sepia;
 
-    CImg<double> res(hst_A,nx,ny,depth,3,false);
+
 
     host_alloc(hst_C, dcatouble, nx * ny * 3 * sizeof(double));
 
@@ -66,9 +66,9 @@ int main(int argc, char **argv) {
 
     cuda_exec(cudaMemcpy(hst_C, dev_C, nx * ny * 3 * sizeof(double), cudaMemcpyDeviceToHost));
 
+    CImg<double> res(hst_A,nx,ny,depth,3,false);
     res.save("neno.bmp");
 
-die:
     free(hst_A);
     free(hst_B);
     free(hst_C);
