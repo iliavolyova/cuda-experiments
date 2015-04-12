@@ -4,9 +4,9 @@
 #include "CImg.h"
 using namespace cimg_library;
 
-__global__ void gpu_mv_mul(float *vec, float *mat, float *out, const int N, const int M){
+__global__ void gpu_mv_mul(double *vec, double *mat, double *out, const int N, const int M){
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
-    float sum = 0;
+    double sum = 0;
     if(tid < M){
         for(int i = 0; i < N; i++)
             sum += vec[i] * mat[(i*M) + tid];
@@ -37,10 +37,10 @@ int main(int argc, char **argv) {
     int depth = src.depth();
 
     hst_A = src.data();
-    double sepia[3][3] = {
-            {0.393, 0.769, 0.189},
-            {0.349, 0.686, 0.168},
-            {0.272, 0.534, 0.131}
+    double sepia[9] = {
+        0.393, 0.769, 0.189,
+        0.349, 0.686, 0.168,
+        0.272, 0.534, 0.131
     };
     hst_B = &sepia;
     host_alloc(hst_C, double, nx * ny * 3 * sizeof(double));
@@ -58,10 +58,10 @@ int main(int argc, char **argv) {
     grid_size.x = min((nx + block_size.x - 1) / block_size.x, 65535);
     grid_size.y = min((ny + block_size.y - 1) / block_size.y, 65535);
 
-    gpu_mv_mul<<<grid_size, block_size>>>(dev_A, dev_B, dev_C, nx, ny);
+    gpu_mv_mul<<<grid_size, block_size>>>(dev_A, dev_B, dev_C, 3, ny);
     cuda_exec(cudaDeviceSynchronize());
 
-    cuda_exec(cudaMemcpy(hst_A, dev_C, nx * ny * 3 * sizeof(double), cudaMemcpyDeviceToHost));
+    cuda_exec(cudaMemcpy(hst_C, dev_C, nx * ny * 3 * sizeof(double), cudaMemcpyDeviceToHost));
 
     CImg<double> res(hst_A,nx,ny,depth,3,false);
     res.save("neno.bmp");
