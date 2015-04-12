@@ -42,7 +42,8 @@ int main(int argc, char **argv) {
         0.349, 0.686, 0.168,
         0.272, 0.534, 0.131
     };
-    hst_B = &sepia;
+    hst_B = sepia;
+
     host_alloc(hst_C, double, nx * ny * 3 * sizeof(double));
 
     cuda_exec(cudaMalloc(&dev_A, nx * ny * 3 * sizeof(double)));
