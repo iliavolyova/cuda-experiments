@@ -3,9 +3,11 @@ import numpy as np
 def power_method(A, x0, maxit):
     y = x0
     for i in xrange(maxit):
-        y = A*y
         nrm = np.linalg.norm(y)
-        y = y/nrm
+        x = y/nrm
+        y = A*x
+        gamma = x.T * y
+        print gamma
     return y
 
 def check(mat, power_eigvec):
