@@ -160,7 +160,7 @@ int main(int argc, char **argv)
             converged = true;
     }
 
-    cuda_exec(cudaMemcpy(&eigval, dev_lambda, sizeof(double), cudaMemcpyDeviceToHost));
+    cuda_exec(cudaMemcpy(&eigval, dev_nrm_inv, sizeof(double), cudaMemcpyDeviceToHost));
     printf("\nSpectrum: %#.16lg\n", eigval);
 
     cudaFree(dev_A);
