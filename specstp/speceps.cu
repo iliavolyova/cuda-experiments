@@ -148,12 +148,12 @@ int main(int argc, char **argv)
     while(!converged){
         gpu_dnrm2<<<grid_size, block_size>>>(dev_y, dev_nrm_inv, dim);
         gpu_dscal<<<grid_size, block_size>>>(dev_y, dev_x, dev_nrm_inv, dim);
-        gpu_dgemv<<<grid_size, block_size>>>(dev_A, dev_x, dev_y, dim);
+        //gpu_dgemv<<<grid_size, block_size>>>(dev_A, dev_x, dev_y, dim);
         //gpu_ddot<<<grid_size, block_size>>>(dev_x, dev_y, dev_lambda, dim);
 
         //gpu_dscal<<<grid_size, block_size>>>(dev_x, dev_x, dev_lambda, dim);
-        gpu_subtract<<<grid_size, block_size>>>(dev_y, dev_x, dev_x, dim);
-        gpu_dnrm2<<<grid_size, block_size>>>(dev_x, dev_nrm_inv, dim);
+        //gpu_subtract<<<grid_size, block_size>>>(dev_y, dev_x, dev_x, dim);
+        //gpu_dnrm2<<<grid_size, block_size>>>(dev_x, dev_nrm_inv, dim);
 
         converged = true;
         if (dev_nrm_inv[0] < EPS * dev_lambda[0])
