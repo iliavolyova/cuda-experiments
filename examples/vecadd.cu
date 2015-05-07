@@ -3,7 +3,7 @@
 #include	"cuda_auxiliary.h"
 
 
-__global__	void	gpu_vec_add(double *a, double *b, double *c, int N)
+__global__ void	gpu_vec_add(double *a, double *b, double *c, int N)
 {
 	const int ix = blockIdx.x * blockDim.x + threadIdx.x;
 

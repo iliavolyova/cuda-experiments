@@ -60,13 +60,13 @@ int main(int argc, char **argv)
 
 	if (argc != 3) {
 		fprintf(stderr, "usage: %s dimx dimy\n", argv[0]);
-		goto die;
+		exit(EXIT_FAILURE);
 	}
 
 
-	host_alloc(hst_A, double, nx * ny * sizeof(double));
-	host_alloc(hst_B, double, nx * ny * sizeof(double));
-	host_alloc(hst_C, double, nx * ny * sizeof(double));
+	host_alloc(hst_A, double, nx * ny);
+	host_alloc(hst_B, double, nx * ny);
+	host_alloc(hst_C, double, nx * ny);
 
 	cuda_exec(cudaMalloc(&dev_A, nx * ny * sizeof(double)));
 	cuda_exec(cudaMalloc(&dev_B, nx * ny * sizeof(double)));
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 	printf("CPU time: %.3lgms\n", 1000 * cpu_time);
 	printf("GPU time: %.3lgms\n", 1000 * gpu_time);
 	
-die:
+
 	free(hst_A);
 	free(hst_B);
 	free(hst_C);

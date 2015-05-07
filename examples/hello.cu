@@ -1,7 +1,5 @@
 #include	<stdio.h>
 
-//compile: nvcc hello.cu -o hello
-
 __global__	void print_hello_world(void)
 {
 	printf("Hello world from GPU\n");
