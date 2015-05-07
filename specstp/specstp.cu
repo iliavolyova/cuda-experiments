@@ -49,6 +49,11 @@ int main(int argc, char **argv)
     read_file(hst_A, sizeof(double), dim * dim, fp_A);
     read_file(hst_x, sizeof(double), dim, fp_x);
 
+    int i;
+    for (i = 0; i < dim; ++i){
+        printf("%#.16lg ", hst_x[i]);
+    }
+
     cuda_exec(cudaMalloc(&dev_A, dim * dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_x, dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_y, dim * sizeof(double)));
@@ -62,16 +67,16 @@ int main(int argc, char **argv)
 
     int i;
     for (i = 0; i < steps; ++i){
-        cublas_exec(cublasDnrm2(cublas_handle, dim, dev_y, 1, &norm));
+        cublas_exec(cublasDnrm2(cublas_handle, dim, dev_y, dim, &norm));
         alpha = 1.0/norm;
-        cublas_exec(cublasDscal(cublas_handle, dim, &alpha , dev_y, 1));
-        cublas_exec(cublasDcopy(cublas_handle, dim, dev_y, 1, dev_x, 1));
+        cublas_exec(cublasDscal(cublas_handle, dim, &alpha , dev_y, dim));
+        cublas_exec(cublasDcopy(cublas_handle, dim, dev_y, dim, dev_x, dim));
 
-        cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ZERO, dev_y, 1));
+        cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, dim, &ZERO, dev_y, dim));
     }
 
     cublas_exec(cublasDdot(cublas_handle, dim, dev_x, dim, dev_y, 1, &eigval));
-    printf("\nSpectrum: %#.16lg\n", eigval);
+    printf("Spectrum: %#.16lg\n", eigval);
 
     cublas_exec(cublasDestroy(cublas_handle));
     cudaFree(dev_A);
