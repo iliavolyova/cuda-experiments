@@ -61,6 +61,7 @@ int main(int argc, char **argv)
     cublas_exec(cublasSetMatrix(dim, dim, sizeof(double), hst_A, dim, dev_A, dim));
     cublas_exec(cublasSetVector(dim, sizeof(double), hst_x, 1, dev_x, 1));
 
+    cublas_exec(cublasDnrm2(cublas_handle, dim, dev_x, 1, &norm));
     int i;
     for (i = 0; i < steps; ++i){
         cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_x, 1));

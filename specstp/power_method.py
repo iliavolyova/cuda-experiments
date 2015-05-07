@@ -4,7 +4,9 @@ def power_method(A, x0, maxit):
     y = x0
     for i in xrange(maxit):
         y = A*y
-        y = y/np.linalg.norm(y)
+        nrm = np.linalg.norm(y)
+        print nrm
+        y = y/nrm
     return y
 
 def check(mat, power_eigvec):
@@ -20,12 +22,12 @@ def check(mat, power_eigvec):
 def main():
     dim = input("Dimenzije matrice:")
 
-    arr = np.fromfile('A_' + dim + '.dat', dtype=np.float64)
+    arr = np.fromfile('A_' + str(dim) + '.dat', dtype=np.float64)
     A = arr.reshape(dim,dim)
-    xarr = np.fromfile('x0_' + dim + '.dat', dtype=np.float64)
+    xarr = np.fromfile('x0_' + str(dim) + '.dat', dtype=np.float64)
     x0 = xarr.reshape(dim, 1)
 
-    print A, x0
+    #print A, x0
 
     maxiter = input('Broj iteracija:')
     rndmat = np.matrix(A)
