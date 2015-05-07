@@ -67,10 +67,11 @@ int main(int argc, char **argv)
         cublas_exec(cublasDcopy(cublas_handle, dim, dev_y, 1, dev_x, 1));
 
         cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_y, 1));
+        cublas_exec(cublasDdot(cublas_handle, dim, dev_x, dim, dev_y, 1, &eigval));
+        printf("\nSpectrum: %#.16lg\n", eigval);
     }
-    cublas_exec(cublasDdot(cublas_handle, dim, dev_x, dim, dev_y, 1, &eigval));
 
-    printf("\nSpectrum: %#.16lg\n", eigval);
+
 
     cublas_exec(cublasDestroy(cublas_handle));
     cudaFree(dev_A);
