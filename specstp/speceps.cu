@@ -98,9 +98,6 @@ int main(int argc, char **argv)
     double norm;
     double eigval;
 
-    const double ONE = 1.0;
-    const double ZERO = 0.0;
-    double alpha;
     bool converged = false;
 
     dim3	block_size;
@@ -136,9 +133,8 @@ int main(int argc, char **argv)
     block_size.x = BLOCK_SIZE;
     grid_size.x = min((dim + block_size.x - 1) / block_size.x, 65535);
 
-    int i;
     while(!converged){
-        gpu_dnrm2<<grid_size, block_size>>(dev_y, dev_nrm, dim);
+        gpu_dnrm2<<<grid_size, block_size>>>(dev_y, dev_nrm, dim);
 
 
         converged = true;
