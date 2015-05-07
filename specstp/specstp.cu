@@ -26,6 +26,7 @@ int main(int argc, char **argv)
     double eigval;
 
     const double ONE = 1.0;
+    double alpha;
 
     int dim;
     int steps;
@@ -65,7 +66,8 @@ int main(int argc, char **argv)
     for (i = 0; i < steps; ++i){
         cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_x, 1));
         cublas_exec(cublasDnrm2(cublas_handle, dim, dev_x, 1, dev_nrm));
-        cublas_exec(cublasDscal(cublas_handle, dim, (1.0/dev_nrm[0]), dev_x, 1));
+        alpha = (1.0/dev_nrm[0]);
+        cublas_exec(cublasDscal(cublas_handle, dim, &alpha , dev_x, 1));
     }
     cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_y, 1));
 
