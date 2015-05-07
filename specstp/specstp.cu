@@ -45,10 +45,7 @@ int main(int argc, char **argv)
     open_file(fp_x, argv[3], "r");
     host_alloc(hst_x, double, dim);
 
-    cuda_exec(cudaHostRegister(hst_A, dim * dim * sizeof(double), cudaHostRegisterDefault));
     read_file(hst_A, sizeof(double), dim * dim, fp_A);
-
-    cuda_exec(cudaHostRegister(hst_x, dim * sizeof(double), cudaHostRegisterDefault));
     read_file(hst_x, sizeof(double), dim, fp_x);
 
     cuda_exec(cudaMalloc(&dev_A, dim * dim * sizeof(double)));
@@ -56,7 +53,6 @@ int main(int argc, char **argv)
     cuda_exec(cudaMalloc(&dev_y, dim * sizeof(double)));
 
     cublas_exec(cublasCreate(&cublas_handle));
-    cublas_exec(cublasSetPointerMode(cublas_handle, CUBLAS_POINTER_MODE_DEVICE));
 
     cublas_exec(cublasSetMatrix(dim, dim, sizeof(double), hst_A, dim, dev_A, dim));
     cublas_exec(cublasSetVector(dim, sizeof(double), hst_x, 1, dev_x, 1));
@@ -70,8 +66,6 @@ int main(int argc, char **argv)
         cublas_exec(cublasDscal(cublas_handle, dim, &alpha , dev_x, 1));
     }
     cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_y, 1));
-
-    cublas_exec(cublasSetPointerMode(cublas_handle, CUBLAS_POINTER_MODE_HOST));
 
     eigval = dev_y[0]/dev_x[0];
     printf("\nSpectrum: %#.16lg\n", eigval);
