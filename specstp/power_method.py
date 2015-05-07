@@ -5,7 +5,6 @@ def power_method(A, x0, maxit):
     for i in xrange(maxit):
         y = A*y
         nrm = np.linalg.norm(y)
-        print nrm
         y = y/nrm
     return y
 

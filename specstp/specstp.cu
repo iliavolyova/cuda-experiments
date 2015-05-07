@@ -61,11 +61,12 @@ int main(int argc, char **argv)
 
     int i;
     for (i = 0; i < steps; ++i){
-        cublas_exec(cublasDnrm2(cublas_handle, dim, dev_x, 1, &norm));
+        cublas_exec(cublasDnrm2(cublas_handle, dim, dev_y, 1, &norm));
         alpha = 1.0/norm;
-        cublas_exec(cublasDscal(cublas_handle, dim, &alpha , dev_x, 1));
+        cublas_exec(cublasDscal(cublas_handle, dim, &alpha , dev_y, 1));
+        cublas_exec(cublasDcopy(cublas_handle, dim, dev_y, 1, dev_x, 1));
 
-        cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_x, 1));
+        cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_y, 1));
     }
     cublas_exec(cublasDdot(cublas_handle, dim, dev_x, dim, dev_y, 1, &eigval));
 
