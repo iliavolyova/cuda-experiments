@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     int steps;
 
     if (argc != 5) {
-        fprintf(stderr, "usage: %s N A.dat\n", argv[0]);
+        fprintf(stderr, "usage: %s N A.dat x0.dat steps\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -44,7 +44,10 @@ int main(int argc, char **argv)
     read_file(hst_A, sizeof(double), dim * dim, fp_A);
 
     cuda_exec(cudaHostRegister(hst_x, dim * sizeof(double), cudaHostRegisterDefault));
-    read_file(hst_A, sizeof(double), dim, fp_x);
+    read_file(hst_x, sizeof(double), dim, fp_x);
+
+    cuda_exec(cudaMalloc(&dev_A, dim * dim * sizeof(double)));
+    cuda_exec(cudaMalloc(&dev_x, dim * sizeof(double)));
 
     cublas_exec(cublasCreate(&cublas_handle));
     cublas_exec(cublasSetPointerMode(cublas_handle, CUBLAS_POINTER_MODE_DEVICE));
