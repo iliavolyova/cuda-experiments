@@ -1,12 +1,9 @@
 #include	<stdio.h>
-#include	<cublas_v2.h>
 #include    "cuda_auxiliary.h"
 
 /*
  * compile: nvcc specstp.cu -lcublas -o specstp
- * trebaju ti dgemv, dnrm2
  */
-
 
 int main(int argc, char **argv)
 {
