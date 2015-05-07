@@ -4,7 +4,6 @@
 
 /*
  * compile: nvcc specstp.cu -lcublas -o specstp
- * trebaju ti dgemv, dnrm2
  */
 
 
@@ -63,13 +62,13 @@ int main(int argc, char **argv)
 
     int i;
     for (i = 0; i < steps; ++i){
-        cublas_exec(cublasDgemv('t', dim, dim, ONE, dev_A, dim, dev_x, ONE, ONE, devx, ONE));
+        cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, ONE, dev_A, dim, dev_x, ONE, ONE, devx, ONE));
         cublas_exec(cublasDnrm2(cublas_handle, dim, dev_x, ONE, dev_nrm));
-        cublas_exec(cublasDscal(cublas_handle, dim, ONE/dev_nrm, dev_x, ONE));
+        cublas_exec(cublasDscal(cublas_handle, dim, 1.0/dev_nrm, dev_x, ONE));
     }
-    cublas_exec(cublasDgemv('t', dim, dim, ONE, dev_A, dim, dev_x, ONE, ONE, dev_y, ONE));
+    cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, ONE, dev_A, dim, dev_x, ONE, ONE, dev_y, ONE));
 
-    cublas_exec(cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_HOST));
+    cublas_exec(cublasSetPointerMode(cublas_handle, CUBLAS_POINTER_MODE_HOST));
     eigval = *dev_y/(*dev_x);
 
     printf("\nSpectrum: %#.16lg\n", eigval);
