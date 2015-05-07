@@ -67,8 +67,12 @@ int main(int argc, char **argv)
     }
     cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_y, 1));
 
-    //eigval = dev_y[0]/dev_x[0];
-    //printf("\nSpectrum: %#.16lg\n", eigval);
+    double x,y;
+    cuda_exec(cudaMemcpy(dev_x, &x, sizeof(double), cudaMemcypDeviceToHost));
+    cuda_exec(cudaMemcpy(dev_y, &y, sizeof(double), cudaMemcypDeviceToHost));
+
+    eigval = y / x;
+    printf("\nSpectrum: %#.16lg\n", eigval);
 
     cublas_exec(cublasDestroy(cublas_handle));
     cudaFree(dev_A);
