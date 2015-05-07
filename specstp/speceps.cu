@@ -156,8 +156,7 @@ int main(int argc, char **argv)
         //gpu_dnrm2<<<grid_size, block_size>>>(dev_x, dev_nrm_inv, dim);
 
         converged = true;
-        if (dev_nrm_inv[0] < EPS * dev_lambda[0])
-            converged = true;
+
     }
 
     cuda_exec(cudaMemcpy(&eigval, dev_nrm_inv, sizeof(double), cudaMemcpyDeviceToHost));
