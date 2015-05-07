@@ -47,7 +47,7 @@ int main(int argc, char **argv)
     read_file(hst_A, sizeof(double), dim, fp_x);
 
     cublas_exec(cublasCreate(&cublas_handle));
-    cublas_exec(cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_DEVICE));
+    cublas_exec(cublasSetPointerMode(cublas_handle, CUBLAS_POINTER_MODE_DEVICE));
 
     cublas_exec(cublasSetMatrix(dim, dim, sizeof(double), hst_A, dim, dev_A, dim));
     cublas_exec(cublasSetVector(dim, sizeof(double), hst_x, ONE, dev_x, ONE));
