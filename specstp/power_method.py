@@ -7,7 +7,6 @@ def power_method(A, x0, maxit):
         x = y/nrm
         y = A*x
         gamma = x.T * y
-        print gamma
     return y
 
 def check(mat, power_eigvec):

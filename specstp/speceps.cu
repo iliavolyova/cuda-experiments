@@ -45,14 +45,22 @@ __global__ void gpu_dnrm2(double *x, double *nrm, const int dim)
     }
 
     if (tid == 0) {
-        nrm[0] = sqrt(cache[0]);
+        nrm[0] = 1.0/sqrt(cache[0]);
     }
 }
 
-__global__ void gpu_dscal(double *x, double alpha, const int n)
+__global__ void gpu_dscal(double *x, double *y, double *alpha, const int dim)
 {
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
-    x[gid] *= alpha;
+    if (gid < dim)
+        y[gid] = x[gid] * alpha[0];
+}
+
+__global__ void gpu_subtract(double *x, double *y, double *out, const int dim)
+{
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (gid < dim)
+        out[gid] = x[gid] - y[gid];
 }
 
 __global__ void gpu_ddot(double *x, double *y, double *out, const int dim)
@@ -93,10 +101,13 @@ int main(int argc, char **argv)
     double *dev_A = NULL;
     double *dev_x = NULL;
     double *dev_y = NULL;
-    double *dev_nrm = NULL;
+    double *dev_nrm_inv = NULL;
+    double *dev_lambda;
+    double *dev_subs;
 
     double norm;
     double eigval;
+    double EPS = 0.00001;
 
     bool converged = false;
 
@@ -124,7 +135,9 @@ int main(int argc, char **argv)
     cuda_exec(cudaMalloc(&dev_A, dim * dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_x, dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_y, dim * sizeof(double)));
-    cuda_exec(cudaMalloc(&dev_nrm, sizeof(double)));
+    cuda_exec(cudaMalloc(&dev_subs, dim * sizeof(double)));
+    cuda_exec(cudaMalloc(&dev_nrm_inv, sizeof(double)));
+    cuda_exec(cudaMalloc(&dev_lambda, sizeof(double)));
 
     cuda_exec(cudaMemcpy(dev_A, hst_A, dim * dim * sizeof(double), cudaMemcpyHostToDevice));
     cuda_exec(cudaMemcpy(dev_x, hst_x, dim * sizeof(double), cudaMemcpyHostToDevice));
@@ -134,13 +147,20 @@ int main(int argc, char **argv)
     grid_size.x = min((dim + block_size.x - 1) / block_size.x, 65535);
 
     while(!converged){
-        gpu_dnrm2<<<grid_size, block_size>>>(dev_y, dev_nrm, dim);
+        gpu_dnrm2<<<grid_size, block_size>>>(dev_y, dev_nrm_inv, dim);
+        gpu_dscal<<<grid_size, block_size>>>(dev_y, dev_x, dev_nrm_inv, dim);
+        gpu_dgemv<<<grid_size, block_size>>>(dev_A, dev_x, dev_y, dim);
+        gpu_ddot<<<grid_size, block_size>>>(dev_x, dev_y, dev_lambda, dim);
 
+        gpu_dscal<<<grid_size, block_size>>>(dev_x, dev_x, dev_lambda, dim);
+        gpu_subtract<<<grid_size, block_size>>>(dev_y, dev_x, dev_x, dim);
+        gpu_dnrm2<<<grid_size, block_size>>>(dev_x, dev_nrm_inv, dim);
 
-        converged = true;
+        if (dev_nrm_inv[0] < EPS * dev_lambda[0])
+            converged = true;
     }
 
-    cuda_exec(cudaMemcpy(&eigval, dev_nrm, sizeof(double), cudaMemcpyDeviceToHost));
+    cuda_exec(cudaMemcpy(&eigval, dev_nrm_inv, sizeof(double), cudaMemcpyDeviceToHost));
 
 
     printf("\nSpectrum: %#.16lg\n", eigval);
@@ -148,7 +168,9 @@ int main(int argc, char **argv)
     cudaFree(dev_A);
     cudaFree(dev_x);
     cudaFree(dev_y);
-    cudaFree(dev_nrm);
+    cudaFree(dev_subs);
+    cudaFree(dev_nrm_inv);
+    cudaFree(dev_lambda);
 
     host_free(hst_A);
     host_free(hst_x);
