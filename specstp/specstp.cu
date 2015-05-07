@@ -21,8 +21,8 @@ int main(int argc, char **argv)
     double *dev_A = NULL;
     double *dev_x = NULL;
     double *dev_y = NULL;
-    double *dev_nrm = NULL;
 
+    double norm;
     double eigval;
 
     const double ONE = 1.0;
@@ -54,7 +54,6 @@ int main(int argc, char **argv)
     cuda_exec(cudaMalloc(&dev_A, dim * dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_x, dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_y, dim * sizeof(double)));
-    cuda_exec(cudaMalloc(&dev_nrm, sizeof(double)));
 
     cublas_exec(cublasCreate(&cublas_handle));
     cublas_exec(cublasSetPointerMode(cublas_handle, CUBLAS_POINTER_MODE_DEVICE));
@@ -65,21 +64,21 @@ int main(int argc, char **argv)
     int i;
     for (i = 0; i < steps; ++i){
         cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_x, 1));
-        cublas_exec(cublasDnrm2(cublas_handle, dim, dev_x, 1, dev_nrm));
-        alpha = (1.0/dev_nrm[0]);
+        cublas_exec(cublasDnrm2(cublas_handle, dim, dev_x, 1, &norm));
+        alpha = 1.0/norm;
         cublas_exec(cublasDscal(cublas_handle, dim, &alpha , dev_x, 1));
     }
     cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_y, 1));
 
     cublas_exec(cublasSetPointerMode(cublas_handle, CUBLAS_POINTER_MODE_HOST));
-    eigval = *dev_y/(*dev_x);
 
+    eigval = dev_y[0]/dev_x[0];
     printf("\nSpectrum: %#.16lg\n", eigval);
 
     cublas_exec(cublasDestroy(cublas_handle));
     cudaFree(dev_A);
     cudaFree(dev_x);
-    cudaFree(dev_nrm);
+    cudaFree(dev_y);
 
     host_free(hst_A);
     host_free(hst_x);
