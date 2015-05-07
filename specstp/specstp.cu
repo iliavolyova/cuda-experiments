@@ -57,21 +57,18 @@ int main(int argc, char **argv)
 
     cublas_exec(cublasSetMatrix(dim, dim, sizeof(double), hst_A, dim, dev_A, dim));
     cublas_exec(cublasSetVector(dim, sizeof(double), hst_x, 1, dev_x, 1));
+    cublas_exec(cublasSetVector(dim, sizeof(double), hst_x, 1, dev_y, 1));
 
     int i;
     for (i = 0; i < steps; ++i){
-        cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_x, 1));
         cublas_exec(cublasDnrm2(cublas_handle, dim, dev_x, 1, &norm));
         alpha = 1.0/norm;
         cublas_exec(cublasDscal(cublas_handle, dim, &alpha , dev_x, 1));
+
+        cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_x, 1));
     }
-    cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_y, 1));
+    cublas_exec(cublasDdot(cublas_handle, dim, dev_x, dev_y, &eigval));
 
-    double x,y;
-    cuda_exec(cudaMemcpy(dev_x, &x, sizeof(double), cudaMemcpyDeviceToHost));
-    cuda_exec(cudaMemcpy(dev_y, &y, sizeof(double), cudaMemcpyDeviceToHost));
-
-    eigval = y / x;
     printf("\nSpectrum: %#.16lg\n", eigval);
 
     cublas_exec(cublasDestroy(cublas_handle));
