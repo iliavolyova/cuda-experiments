@@ -53,6 +53,7 @@ int main(int argc, char **argv)
     cuda_exec(cudaMalloc(&dev_y, dim * sizeof(double)));
 
     cublas_exec(cublasCreate(&cublas_handle));
+    cublas_exec(cublasSetPointerMode(cublas_handle, CUBLAS_POINTER_MODE_HOST));
 
     cublas_exec(cublasSetMatrix(dim, dim, sizeof(double), hst_A, dim, dev_A, dim));
     cublas_exec(cublasSetVector(dim, sizeof(double), hst_x, 1, dev_x, 1));
