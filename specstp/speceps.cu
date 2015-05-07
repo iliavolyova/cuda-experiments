@@ -105,7 +105,6 @@ int main(int argc, char **argv)
     double *dev_lambda;
     double *dev_subs;
 
-    double norm;
     double eigval;
     double EPS = 0.00001;
 
@@ -160,9 +159,7 @@ int main(int argc, char **argv)
             converged = true;
     }
 
-    cuda_exec(cudaMemcpy(&eigval, dev_nrm_inv, sizeof(double), cudaMemcpyDeviceToHost));
-
-
+    cuda_exec(cudaMemcpy(&eigval, dev_lambda, sizeof(double), cudaMemcpyDeviceToHost));
     printf("\nSpectrum: %#.16lg\n", eigval);
 
     cudaFree(dev_A);
