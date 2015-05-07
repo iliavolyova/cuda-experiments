@@ -49,9 +49,9 @@ int main(int argc, char **argv)
     read_file(hst_A, sizeof(double), dim * dim, fp_A);
     read_file(hst_x, sizeof(double), dim, fp_x);
 
-    int i;
-    for (i = 0; i < dim; ++i){
-        printf("%#.16lg ", hst_x[i]);
+    int j;
+    for (j = 0; j < dim; ++j){
+        printf("%#.16lg ", hst_x[j]);
     }
 
     cuda_exec(cudaMalloc(&dev_A, dim * dim * sizeof(double)));
