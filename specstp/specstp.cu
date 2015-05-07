@@ -10,7 +10,7 @@
 
 int main(int argc, char **argv)
 {
-    cublas_handle_t cublas_handle;
+    cublasHandle_t cublas_handle;
     cublas_exec(cublasCreate(&cublas_handle));
 
     int version;
