@@ -77,7 +77,7 @@ __global__ void gpu_ddot(double *x, double *y, double *out, const int dim)
         i >>= 1;
     }
 
-    if (threadIdx.x = 0)
+    if (threadIdx.x == 0)
         out[0] = cache[0];
 
 }
