@@ -4,6 +4,7 @@
 
 /*
  * compile: nvcc specstp.cu -lcublas -o specstp
+ * trebaju ti dgemv, dnrm2
  */
 
 
@@ -24,7 +25,7 @@ int main(int argc, char **argv)
 
     double eigval;
 
-    double ONE = 1.0;
+    double *ONE = 1.0;
 
     int dim;
     int steps;
@@ -58,15 +59,15 @@ int main(int argc, char **argv)
     cublas_exec(cublasSetPointerMode(cublas_handle, CUBLAS_POINTER_MODE_DEVICE));
 
     cublas_exec(cublasSetMatrix(dim, dim, sizeof(double), hst_A, dim, dev_A, dim));
-    cublas_exec(cublasSetVector(dim, sizeof(double), hst_x, ONE, dev_x, ONE));
+    cublas_exec(cublasSetVector(dim, sizeof(double), hst_x, 1, dev_x, 1));
 
     int i;
     for (i = 0; i < steps; ++i){
-        cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, ONE, dev_A, dim, dev_x, ONE, ONE, devx, ONE));
-        cublas_exec(cublasDnrm2(cublas_handle, dim, dev_x, ONE, dev_nrm));
-        cublas_exec(cublasDscal(cublas_handle, dim, 1.0/dev_nrm, dev_x, ONE));
+        cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_x, 1));
+        cublas_exec(cublasDnrm2(cublas_handle, dim, dev_x, 1, dev_nrm));
+        cublas_exec(cublasDscal(cublas_handle, dim, 1.0/(&dev_nrm), dev_x, 1));
     }
-    cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, ONE, dev_A, dim, dev_x, ONE, ONE, dev_y, ONE));
+    cublas_exec(cublasDgemv(cublas_handle, CUBLAS_OP_T, dim, dim, &ONE, dev_A, dim, dev_x, 1, &ONE, dev_y, 1));
 
     cublas_exec(cublasSetPointerMode(cublas_handle, CUBLAS_POINTER_MODE_HOST));
     eigval = *dev_y/(*dev_x);
