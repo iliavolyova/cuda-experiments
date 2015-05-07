@@ -1,7 +1,7 @@
 #include	<stdio.h>
 #include    "cuda_auxiliary.h"
 
-#DEFINE BLOCK_SIZE 64
+#define BLOCK_SIZE 64
 
 __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
 {
