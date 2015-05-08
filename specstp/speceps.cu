@@ -18,7 +18,7 @@ __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
 
 }
 
-__global__ void gpu_dnrm2(double *x, double *nrm, const int dim)
+__global__ void gpu_dnrm2(double *x, double *nrm, const int dim, bool invert)
 {
     __shared__ double cache[BLOCK_SIZE];
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -45,7 +45,10 @@ __global__ void gpu_dnrm2(double *x, double *nrm, const int dim)
     }
 
     if (tid == 0) {
-        nrm[0] = 1.0/sqrt(cache[0]);
+        if (invert)
+            nrm[0] = 1.0/sqrt(cache[0]);
+        else
+            nrm[0] = sqrt(cache[0]);
     }
 }
 
@@ -151,19 +154,19 @@ int main(int argc, char **argv)
 
     int cnt = 0;
     while(!converged){
-        gpu_dnrm2<<<grid_size, block_size>>>(dev_y, dev_nrm_inv, dim);
+        gpu_dnrm2<<<grid_size, block_size>>>(dev_y, dev_nrm_inv, dim, true);
         gpu_dscal<<<grid_size, block_size>>>(dev_y, dev_x, dev_nrm_inv, dim);
         gpu_dgemv<<<grid_size, block_size>>>(dev_A, dev_x, dev_y, dim);
         gpu_ddot<<<grid_size, block_size>>>(dev_x, dev_y, dev_lambda, dim);
 
         gpu_dscal<<<grid_size, block_size>>>(dev_x, dev_tmp, dev_lambda, dim);
         gpu_subtract<<<grid_size, block_size>>>(dev_y, dev_tmp, dev_x, dim);
-        gpu_dnrm2<<<grid_size, block_size>>>(dev_x, dev_nrm_inv, dim);
+        gpu_dnrm2<<<grid_size, block_size>>>(dev_x, dev_nrm_inv, dim, false);
 
         cuda_exec(cudaMemcpy(&lambda, dev_lambda, sizeof(double), cudaMemcpyDeviceToHost));
         cuda_exec(cudaMemcpy(&subsnorm, dev_nrm_inv, sizeof(double), cudaMemcpyDeviceToHost));
 
-        if (1.0/subsnorm < EPS * lambda)
+        if (subsnorm < EPS * lambda)
             converged = true;
 
         if (cnt == 100000){
