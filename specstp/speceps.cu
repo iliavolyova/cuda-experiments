@@ -10,22 +10,20 @@ __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
     int tid = threadIdx.x;
     double sum = 0;
 
-    for (int i = 0; i < ((dim + BLOCK_SIZE - 1) / BLOCK_SIZE); ++i){
-        if(i * BLOCK_SIZE + tid < dim)
-            cache[tid] = x[threadIdx.x + i * BLOCK_SIZE];
-        else
-            cache[tid] = 0.f;
-        __syncthreads();
+    for (int i = gid; i < dim; i += blockDim.x){
+        sum += A[i] * x[i];
+    }
 
-        for (int j = 0; j < BLOCK_SIZE; ++j){
-            sum += A[gid * dim + (i * BLOCK_SIZE + j)] * cache[j];
-        }
+    cache[gid] = sum;
+
+    for (int i = blockDim.x / 2; i > 0; i >>= 1) {
+        if (cacheindex < i)
+            cache[gid] += cache[gid + i];
         __syncthreads();
     }
 
     if(gid < dim)
-        y[gid] = sum;
-
+        y[gid] = cache[gid];
 }
 
 __global__ void gpu_dnrm2(double *x, double *nrm, const int dim, bool invert)
