@@ -101,6 +101,7 @@ int main(int argc, char **argv)
     double *dev_A = NULL;
     double *dev_x = NULL;
     double *dev_y = NULL;
+    double *dev_tmp = NULL;
     double *dev_nrm_inv = NULL;
     double *dev_lambda;
     double *dev_subs;
@@ -136,6 +137,7 @@ int main(int argc, char **argv)
     cuda_exec(cudaMalloc(&dev_A, dim * dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_x, dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_y, dim * sizeof(double)));
+    cuda_exec(cudaMalloc(&dev_tmp, dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_subs, dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_nrm_inv, sizeof(double)));
     cuda_exec(cudaMalloc(&dev_lambda, sizeof(double)));
@@ -147,6 +149,7 @@ int main(int argc, char **argv)
     block_size.x = BLOCK_SIZE;
     grid_size.x = min((dim + block_size.x - 1) / block_size.x, 65535);
 
+    int cnt = 0;
     while(!converged){
         gpu_dnrm2<<<grid_size, block_size>>>(dev_y, dev_nrm_inv, dim);
         gpu_dscal<<<grid_size, block_size>>>(dev_y, dev_x, dev_nrm_inv, dim);
@@ -154,14 +157,15 @@ int main(int argc, char **argv)
         gpu_ddot<<<grid_size, block_size>>>(dev_x, dev_y, dev_lambda, dim);
 
         gpu_dscal<<<grid_size, block_size>>>(dev_x, dev_x, dev_lambda, dim);
-        gpu_subtract<<<grid_size, block_size>>>(dev_y, dev_x, dev_x, dim);
-        gpu_dnrm2<<<grid_size, block_size>>>(dev_x, dev_nrm_inv, dim);
+        gpu_subtract<<<grid_size, block_size>>>(dev_y, dev_x, dev_tmp, dim);
+        gpu_dnrm2<<<grid_size, block_size>>>(dev_tmp, dev_nrm_inv, dim);
 
         cuda_exec(cudaMemcpy(&lambda, dev_lambda, sizeof(double), cudaMemcpyDeviceToHost));
         cuda_exec(cudaMemcpy(&subsnorm, dev_nrm_inv, sizeof(double), cudaMemcpyDeviceToHost));
-        printf("%#.16lg\t%#.16lg\n", subsnorm, EPS*lambda);
-        if (subsnorm < EPS * lambda)
+
+        if (subsnorm < EPS * lambda || cnt == 10)
             converged = true;
+        cnt++;
     }
 
     cuda_exec(cudaMemcpy(&eigval, dev_nrm_inv, sizeof(double), cudaMemcpyDeviceToHost));
@@ -170,6 +174,7 @@ int main(int argc, char **argv)
     cudaFree(dev_A);
     cudaFree(dev_x);
     cudaFree(dev_y);
+    cudaFree(dev_tmp);
     cudaFree(dev_subs);
     cudaFree(dev_nrm_inv);
     cudaFree(dev_lambda);
