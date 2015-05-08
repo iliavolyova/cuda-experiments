@@ -45,13 +45,11 @@ __global__ void gpu_dnrm2(double *x, double *nrm, const int dim, bool invert)
 
     __syncthreads();
 
-    int i = blockDim.x / 2;
-    while(i > 0){
+
+    for(int i = blockDim.x / 2; i > 0; i >>= 1){
         if(tid < i)
             cache[tid] = cache[tid] + cache[tid + i];
         __syncthreads();
-
-        i >>= 1;
     }
 
     if (tid == 0) {
@@ -89,13 +87,10 @@ __global__ void gpu_ddot(double *x, double *y, double *out, const int dim)
 
     __syncthreads();
 
-    int i = blockDim.x / 2;
-    while (i > 0) {
+    for (int i = blockDim.x / 2; i > 0; i >>= 1) {
         if (cacheindex < i)
             cache[cacheindex] += cache[cacheindex + i];
         __syncthreads();
-
-        i >>= 1;
     }
 
     if (threadIdx.x == 0)
@@ -116,7 +111,6 @@ int main(int argc, char **argv)
     double *dev_y = NULL;
     double *dev_nrm_inv = NULL;
     double *dev_lambda;
-    double *dev_subs;
 
     double eigval;
     double lambda;
@@ -149,7 +143,6 @@ int main(int argc, char **argv)
     cuda_exec(cudaMalloc(&dev_A, dim * dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_x, dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_y, dim * sizeof(double)));
-    cuda_exec(cudaMalloc(&dev_subs, dim * sizeof(double)));
     cuda_exec(cudaMalloc(&dev_nrm_inv, sizeof(double)));
     cuda_exec(cudaMalloc(&dev_lambda, sizeof(double)));
 
@@ -190,7 +183,6 @@ int main(int argc, char **argv)
     cudaFree(dev_A);
     cudaFree(dev_x);
     cudaFree(dev_y);
-    cudaFree(dev_subs);
     cudaFree(dev_nrm_inv);
     cudaFree(dev_lambda);
 
