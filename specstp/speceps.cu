@@ -18,13 +18,13 @@ __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
         __syncthreads();
 
         for (int j = 0; j < BLOCK_SIZE; ++j){
-            sum += A[tid * dim + (i * BLOCK_SIZE + j)] * cache[j];
+            sum += A[gid * dim + (i * BLOCK_SIZE + j)] * cache[j];
         }
         __syncthreads();
     }
 
-    if(tid < dim)
-        y[tid] = sum;
+    if(gid < dim)
+        y[gid] = sum;
 
 }
 
