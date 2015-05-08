@@ -7,13 +7,16 @@ __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
 {
     __shared__ double cache[BLOCK_SIZE];
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
-    double sum = 0;
+    double sum = 0.0;
 
     for (int i = gid; i < dim; i += blockDim.x){
         sum += A[i] * x[i];
     }
 
-    cache[gid] = sum;
+    if (gid < dim)
+        cache[gid] = sum;
+    else
+        cache[gid] = 0.0;
 
     for (int i = blockDim.x / 2; i > 0; i >>= 1) {
         if (gid < i)
