@@ -155,7 +155,7 @@ int main(int argc, char **argv)
     while(!converged){
         gpu_dnrm2<<<grid_size, block_size>>>(dev_y, dev_nrm_inv, dim, true);
         gpu_dscal<<<grid_size, block_size>>>(dev_y, dev_x, dev_nrm_inv, dim);
-        gpu_dgemv<<<grid_size, block_size>>>(dev_A, dev_x, dev_y, dim);
+        gpu_dgemv<<<dim, block_size>>>(dev_A, dev_x, dev_y, dim);
         gpu_ddot<<<grid_size, block_size>>>(dev_x, dev_y, dev_lambda, dim);
 
         gpu_dscal<<<grid_size, block_size>>>(dev_x, dev_x, dev_lambda, dim);
