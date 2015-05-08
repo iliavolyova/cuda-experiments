@@ -22,8 +22,8 @@ __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
         __syncthreads();
     }
 
-    if(tid < dim)
-        y[tid] = cache[tid];
+    if(tid == 0)
+        y[blockIdx.x] = cache[tid];
 }
 
 __global__ void gpu_dnrm2(double *x, double *nrm, const int dim, bool invert)
