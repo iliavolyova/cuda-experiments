@@ -6,35 +6,26 @@
 __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
 {
     __shared__ double cache[BLOCK_SIZE];
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
-    int bid = blockIdx.x;
-    int row = bid * BLOCK_SIZE + tid;
     double sum = 0;
-/*
-    if (gid < dim){
-        for (i = 0; i < dim; ++i){
-            sum += A[(i*dim) + gid] * x[i];
-        }
-        y[gid] = sum;
-    }
-*/
-    for(int i = 0; i < (dim-1) / (BLOCK_SIZE+1); ++i){
-        if (i * BLOCK_SIZE + tid < dim)
-            cache[tid] = x[i*BLOCK_SIZE + tid];
+
+    for (int i = 0; i < ((dim + BLOCK_SIZE - 1) / BLOCK_SIZE); ++i){
+        if(i * BLOCK_SIZE + tid < dim)
+            cache[tid] = x[threadIdx.x + i * BLOCK_SIZE];
         else
-            cache[tid] = 0;
+            cache[tid] = 0.f;
         __syncthreads();
 
         for (int j = 0; j < BLOCK_SIZE; ++j){
-            if (row < dim && i * BLOCK_SIZE + j < dim)
-                sum += A[j * BLOCK_SIZE + row*dim+j] * cache[j];
-            __syncthreads();
+            sum += A[tid * dim + (i * BLOCK_SIZE + j)] * cache[j];
         }
+        __syncthreads();
     }
 
-    if(row < dim)
-        y[row] = sum;
-    __syncthreads();
+    if(tid < dim)
+        y[tid] = sum;
+
 }
 
 __global__ void gpu_dnrm2(double *x, double *nrm, const int dim, bool invert)
