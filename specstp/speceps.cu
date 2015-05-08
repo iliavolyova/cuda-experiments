@@ -10,8 +10,8 @@ __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
     int tid = threadIdx.x;
     double sum = 0.0;
 
-    for (int i = gid; i < dim; i += blockDim.x * gridDim.x)
-        sum += A[i] * x[i];
+    for (int i = gid; i < dim; i += blockDim.x * gridDim.x )
+        sum += A[i * dim] * x[i];
 
     if (tid < dim)
         cache[tid] = sum;
@@ -79,23 +79,23 @@ __global__ void gpu_subtract(double *x, double *y, double *out, const int dim)
 __global__ void gpu_ddot(double *x, double *y, double *out, const int dim)
 {
     __shared__ double cache[BLOCK_SIZE];
-    int cacheindex = threadIdx.x;
+    int tid = threadIdx.x;
     double temp;
 
     for(int gid = blockIdx.x * blockDim.x + threadIdx.x; gid < dim; gid += blockDim.x * gridDim.x)
         temp += x[gid] * y[gid];
 
-    cache[cacheindex] = temp;
+    cache[tid] = temp;
 
     __syncthreads();
 
     for (int i = blockDim.x / 2; i > 0; i >>= 1) {
-        if (cacheindex < i)
-            cache[cacheindex] += cache[cacheindex + i];
+        if (tid < i)
+            cache[tid] += cache[tid + i];
         __syncthreads();
     }
 
-    if (threadIdx.x == 0)
+    if (tid == 0)
         out[0] = cache[0];
 
 }
