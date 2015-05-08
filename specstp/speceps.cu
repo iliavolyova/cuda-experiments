@@ -7,7 +7,6 @@ __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
 {
     __shared__ double cache[BLOCK_SIZE];
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
-    int tid = threadIdx.x;
     double sum = 0;
 
     for (int i = gid; i < dim; i += blockDim.x){
@@ -17,7 +16,7 @@ __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
     cache[gid] = sum;
 
     for (int i = blockDim.x / 2; i > 0; i >>= 1) {
-        if (cacheindex < i)
+        if (gid < i)
             cache[gid] += cache[gid + i];
         __syncthreads();
     }
