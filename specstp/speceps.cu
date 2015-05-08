@@ -163,12 +163,13 @@ int main(int argc, char **argv)
         cuda_exec(cudaMemcpy(&lambda, dev_lambda, sizeof(double), cudaMemcpyDeviceToHost));
         cuda_exec(cudaMemcpy(&subsnorm, dev_nrm_inv, sizeof(double), cudaMemcpyDeviceToHost));
 
+        printf(" %#.16lg\t %#.16lg\n", subsnorm, lambda * EPS);
         if (subsnorm < EPS * lambda || cnt == 10)
             converged = true;
         cnt++;
     }
 
-    cuda_exec(cudaMemcpy(&eigval, dev_nrm_inv, sizeof(double), cudaMemcpyDeviceToHost));
+    cuda_exec(cudaMemcpy(&eigval, dev_lambda, sizeof(double), cudaMemcpyDeviceToHost));
     printf("\nSpectrum: %#.16lg\n", eigval);
 
     cudaFree(dev_A);
