@@ -27,8 +27,6 @@ def main():
     xarr = np.fromfile('x0_' + str(dim) + '.dat', dtype=np.float64)
     x0 = xarr.reshape(dim, 1)
 
-    print x0
-
     maxiter = input('Broj iteracija:')
     rndmat = np.matrix(A)
     rndvec = np.matrix(x0)
