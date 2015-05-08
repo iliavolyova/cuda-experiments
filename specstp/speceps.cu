@@ -163,10 +163,11 @@ int main(int argc, char **argv)
         cuda_exec(cudaMemcpy(&lambda, dev_lambda, sizeof(double), cudaMemcpyDeviceToHost));
         cuda_exec(cudaMemcpy(&subsnorm, dev_nrm_inv, sizeof(double), cudaMemcpyDeviceToHost));
 
-        if (subsnorm < EPS * lambda)
+        if (1.0/subsnorm < EPS * lambda)
             converged = true;
+
         if (cnt == 100000){
-            printf("died: %#.16lg > %#.16lg", subsnorm, EPS * lambda);
+            printf("died after %d iterations: %#.16lg > %#.16lg", cnt, subsnorm, EPS * lambda);
             break;
         }
         cnt++;
