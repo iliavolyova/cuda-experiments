@@ -10,7 +10,7 @@ __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
     double sum = 0.0;
 
     for (int i = tid; i < dim; i += blockDim.x )
-        sum += A[blockIdx.x * blockDim.x + i] * x[i];
+        sum += A[blockIdx.x * dim + i] * x[i];
 
     if (tid < dim)
         cache[tid] = sum;
