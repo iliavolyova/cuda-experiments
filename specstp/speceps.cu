@@ -7,11 +7,11 @@ __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
 {
     __shared__ double cache[BLOCK_SIZE];
     int gid = blockIdx.x * blockDim.x + threadIdx.x;
+    int tid = threadIdx.x;
     double sum = 0.0;
 
-    for (int i = tid; i < dim; i += blockDim.x * gridDim.x){
+    for (int i = gid; i < dim; i += blockDim.x * gridDim.x)
         sum += A[i] * x[i];
-    }
 
     if (tid < dim)
         cache[tid] = sum;
@@ -21,13 +21,13 @@ __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
     __syncthreads();
 
     for (int i = blockDim.x / 2; i > 0; i >>= 1) {
-        if (gid < i)
-            cache[gid] += cache[gid + i];
+        if (tid < i)
+            cache[tid] += cache[tid + i];
         __syncthreads();
     }
 
-    if(gid < dim)
-        y[gid] = cache[gid];
+    if(tid < dim)
+        y[tid] = cache[tid];
 }
 
 __global__ void gpu_dnrm2(double *x, double *nrm, const int dim, bool invert)
