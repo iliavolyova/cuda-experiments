@@ -156,9 +156,9 @@ int main(int argc, char **argv)
         gpu_dgemv<<<grid_size, block_size>>>(dev_A, dev_x, dev_y, dim);
         gpu_ddot<<<grid_size, block_size>>>(dev_x, dev_y, dev_lambda, dim);
 
-        gpu_dscal<<<grid_size, block_size>>>(dev_x, dev_x, dev_lambda, dim);
-        gpu_subtract<<<grid_size, block_size>>>(dev_y, dev_x, dev_tmp, dim);
-        gpu_dnrm2<<<grid_size, block_size>>>(dev_tmp, dev_nrm_inv, dim);
+        gpu_dscal<<<grid_size, block_size>>>(dev_x, dev_tmp, dev_lambda, dim);
+        gpu_subtract<<<grid_size, block_size>>>(dev_y, dev_tmp, dev_x, dim);
+        gpu_dnrm2<<<grid_size, block_size>>>(dev_x, dev_nrm_inv, dim);
 
         cuda_exec(cudaMemcpy(&lambda, dev_lambda, sizeof(double), cudaMemcpyDeviceToHost));
         cuda_exec(cudaMemcpy(&subsnorm, dev_nrm_inv, sizeof(double), cudaMemcpyDeviceToHost));
