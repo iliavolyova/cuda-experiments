@@ -27,7 +27,7 @@ __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
 
         for (int j = 0; j < BLOCK_SIZE; ++j){
             if (row < dim && i * BLOCK_SIZE + j < dim)
-                sum += A[j * BLOCK_SIZE + row*dim+j] * x[j];
+                sum += A[j * BLOCK_SIZE + row*dim+j] * cache[j];
             __syncthreads();
         }
     }
