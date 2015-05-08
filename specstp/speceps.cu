@@ -166,7 +166,7 @@ int main(int argc, char **argv)
         cuda_exec(cudaMemcpy(&lambda, dev_lambda, sizeof(double), cudaMemcpyDeviceToHost));
         cuda_exec(cudaMemcpy(&subsnorm, dev_nrm_inv, sizeof(double), cudaMemcpyDeviceToHost));
 
-        if (subsnorm < EPS * lambda)
+        if (subsnorm < EPS * abs(lambda))
             converged = true;
 
         if (cnt == 100000){
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
     }
 
     cuda_exec(cudaMemcpy(&eigval, dev_lambda, sizeof(double), cudaMemcpyDeviceToHost));
-    printf("\nSpectrum: %#.16lg\n", eigval);
+    printf("\nSpectrum: %#.16lg, done after %d iterations\n", eigval, cnt);
 
     cudaFree(dev_A);
     cudaFree(dev_x);
