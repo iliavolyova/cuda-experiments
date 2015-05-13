@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 
     int dim;
 
-    double timer = 0.0;
+    double dgemv_timer = 0.0;
 
     if (argc != 4) {
         fprintf(stderr, "usage: %s N A.dat x0.dat\n", argv[0]);
@@ -161,10 +161,10 @@ int main(int argc, char **argv)
         gpu_dscal<<<grid_size, block_size>>>(dev_y, dev_x, dev_nrm_inv, dim);
 
         if(cnt == 1)
-            timer -= timer();
+            dgemv_timer -= timer();
         gpu_dgemv<<<grid_size, block_size>>>(dev_A, dev_x, dev_y, dim);
         if(cnt == 1)
-            timer += timer();
+            dgemv_timer += timer();
 
         gpu_ddot<<<grid_size, block_size>>>(dev_x, dev_y, dev_lambda, dim);
 
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
     }
 
     cuda_exec(cudaMemcpy(&eigval, dev_lambda, sizeof(double), cudaMemcpyDeviceToHost));
-    printf("Dgemv took: %.3lgms\n", 1000*timer);
+    printf("Dgemv took: %.3lgms\n", 1000* dgemv_timer);
     printf("Spectrum: %#.16lg, done after %d iterations\n", eigval, cnt);
 
     cudaFree(dev_A);
