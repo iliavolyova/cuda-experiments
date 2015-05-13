@@ -6,24 +6,26 @@
 __global__ void gpu_dgemv(double *A, double *x, double *y, const int dim)
 {
     __shared__ double cache[BLOCK_SIZE];
+    int gid = blockIdx.x * blockDim.x + threadIdx.x;
     int tid = threadIdx.x;
-    double sum = 0.0;
+    double sum = 0;
 
-    for (int i = tid; i < dim; i += blockDim.x )
-        sum += A[blockIdx.x * dim + i] * x[i];
+    for (int i = 0; i < ((dim + BLOCK_SIZE - 1) / BLOCK_SIZE); ++i){
+        if(i * BLOCK_SIZE + tid < dim)
+            cache[tid] = x[threadIdx.x + i * BLOCK_SIZE];
+        else
+            cache[tid] = 0.f;
+        __syncthreads();
 
-        cache[tid] = sum;
-
-    __syncthreads();
-
-    for (int i = blockDim.x / 2; i > 0; i >>= 1) {
-        if (tid < i)
-            cache[tid] += cache[tid + i];
+        for (int j = 0; j < BLOCK_SIZE; ++j){
+            sum += A[gid * dim + (i * BLOCK_SIZE + j)] * cache[j];
+        }
         __syncthreads();
     }
 
-    if(tid == 0)
-        y[blockIdx.x] = cache[tid];
+    if(gid < dim)
+        y[gid] = sum;
+
 }
 
 __global__ void gpu_dnrm2(double *x, double *nrm, const int dim, bool invert)
@@ -75,23 +77,23 @@ __global__ void gpu_subtract(double *x, double *y, double *out, const int dim)
 __global__ void gpu_ddot(double *x, double *y, double *out, const int dim)
 {
     __shared__ double cache[BLOCK_SIZE];
-    int tid = threadIdx.x;
+    int cacheindex = threadIdx.x;
     double temp;
 
     for(int gid = blockIdx.x * blockDim.x + threadIdx.x; gid < dim; gid += blockDim.x * gridDim.x)
         temp += x[gid] * y[gid];
 
-    cache[tid] = temp;
+    cache[cacheindex] = temp;
 
     __syncthreads();
 
     for (int i = blockDim.x / 2; i > 0; i >>= 1) {
-        if (tid < i)
-            cache[tid] += cache[tid + i];
+        if (cacheindex < i)
+            cache[cacheindex] += cache[cacheindex + i];
         __syncthreads();
     }
 
-    if (tid == 0)
+    if (threadIdx.x == 0)
         out[0] = cache[0];
 
 }
@@ -158,9 +160,11 @@ int main(int argc, char **argv)
         gpu_dnrm2<<<grid_size, block_size>>>(dev_y, dev_nrm_inv, dim, true);
         gpu_dscal<<<grid_size, block_size>>>(dev_y, dev_x, dev_nrm_inv, dim);
 
-        if (cnt == 1) timer -= timer();
-        gpu_dgemv<<<dim, block_size>>>(dev_A, dev_x, dev_y, dim);
-        if (cnt == 1) timer += timer();
+        if(cnt == 1)
+            timer -= timer();
+        gpu_dgemv<<<grid_size, block_size>>>(dev_A, dev_x, dev_y, dim);
+        if(cnt == 1)
+            timer += timer();
 
         gpu_ddot<<<grid_size, block_size>>>(dev_x, dev_y, dev_lambda, dim);
 
@@ -196,4 +200,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
